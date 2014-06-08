@@ -1,6 +1,6 @@
 
 play = function(m,show=TRUE){
-  if(!(m%in%strat) || conf[m]!=0){
+  if(!(m%in%strat) || conf[m]!=0 || (conf[82]!=0 && ceiling(m/9)!=conf[82])){
     print("illegal move")
     if (show==TRUE){
       print(status())
@@ -8,17 +8,20 @@ play = function(m,show=TRUE){
     return(FALSE)
   }
   
-  if (judge()$finished==TRUE){
-    print("game already finished")
-    if (show==TRUE){
-      print(status())
-    }
-    return(FALSE)
-  }
+  #if (judge()$finished==TRUE){
+  #  print("game already finished")
+  #  if (show==TRUE){
+  #    print(status())
+  #  }
+  #  return(FALSE)
+  #}
   
   rcd <<- rbind(rcd,list(conf=conf,move=m))
-  
   conf[m] <<- conf[m]+turn
+  
+  conf[82] <<- ifelse(m%%9==0,9,m%%9)
+  conf[82] <<- ifelse(sum(abs(getgame(conf[82])))==9,0,conf[82])
+  
   turn <<- (-1)*turn
   if (show==TRUE){
     print(status())
@@ -28,7 +31,7 @@ play = function(m,show=TRUE){
 
 
 
-judge = function(){
+judge = function(){ #TODO
   m=matrix(conf,3,3)
   v=apply(m,1,sum)
   w=apply(m,2,sum)
@@ -55,14 +58,14 @@ judge = function(){
 }
 
 reset = function(){
-  conf <<- rep(0,9)
+  conf <<- rep(0,82)
   turn <<- 1
   rcd <<- NULL
 
 }
 
 
-generate = function(show=TRUE, show_each=FALSE, players=c("s","s")){
+generate = function(show=TRUE, show_each=FALSE, players=c("s","s")){ #TODO
   reset()
   #records=NULL
   winner=0
@@ -95,6 +98,11 @@ generate = function(show=TRUE, show_each=FALSE, players=c("s","s")){
 }
 
 
-
+random.conf = function(){
+  
+  cnf=sample(c(-1,0,1),81,replace=T)
+  g=sample(1:9,1)
+  return(c(cnf,g))
+}
 
 

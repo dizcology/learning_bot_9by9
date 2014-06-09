@@ -8,19 +8,24 @@ play = function(m,show=TRUE){
     return(FALSE)
   }
   
-  #if (judge()$finished==TRUE){
-  #  print("game already finished")
-  #  if (show==TRUE){
-  #    print(status())
-  #  }
-  #  return(FALSE)
-  #}
+  if (judge(conf1)$finished==TRUE){
+    print("game already finished")
+    if (show==TRUE){
+      print(status())
+    }
+    return(FALSE)
+  }
   
   rcd <<- rbind(rcd,list(conf=conf,move=m))
   conf[m] <<- conf[m]+turn
   
   conf[82] <<- ifelse(m%%9==0,9,m%%9)
-  conf[82] <<- ifelse(sum(abs(getgame(conf[82])))==9,0,conf[82])
+  conf[82] <<- ifelse(sum(abs(getgames()[[conf[82]]]))==9,0,conf[82])
+
+  a=getgames()
+  for (i in 1:9){
+    conf1[i] <<- judge(a[[i]])$winner
+  }
   
   turn <<- (-1)*turn
   if (show==TRUE){
@@ -31,8 +36,8 @@ play = function(m,show=TRUE){
 
 
 
-judge = function(){ #TODO
-  m=matrix(conf,3,3)
+judge = function(cnf){ 
+  m=matrix(cnf,3,3)
   v=apply(m,1,sum)
   w=apply(m,2,sum)
   s=m[1,1]+m[2,2]+m[3,3]
@@ -59,6 +64,7 @@ judge = function(){ #TODO
 
 reset = function(){
   conf <<- rep(0,82)
+  conf1 <<- rep(0,9)
   turn <<- 1
   rcd <<- NULL
 
@@ -74,21 +80,26 @@ generate = function(show=TRUE, show_each=FALSE, players=c("s","s")){ #TODO
   v=list()
   for (i in 1:length(players)){
     if (players[i]=="m"){
-      v[[i]]=botmove
+      v[[i]]=sbotmove #for now only sbot moves
     } else {
       v[[i]]=sbotmove
     }
   }
   
-  while ((fnshed==FALSE) && (sum(abs(conf))<9)){
+  while ((fnshed==FALSE) && (sum(abs(conf[1:81]))<81)){
     j=(3-turn)/2
     
     m=v[[j]](show=FALSE)
     
     #records=rbind(records,list(conf=conf,move=m))
     play(m, show=show_each)
-    fnshed=judge()$finished
-    winner=judge()$winner
+    jdg=judge(conf1)
+    fnshed=jdg$finished
+    winner=jdg$winner
+    
+    if (sum(abs(conf[1:81]))==81){
+      fnshed=TRUE
+    }
   }
   
   if (show==TRUE){
@@ -105,4 +116,12 @@ random.conf = function(){
   return(c(cnf,g))
 }
 
+getgames = function(){
+  n=matrix(conf[1:81],9,9)
+  a=rep(list(NA),9)
+  for (i in 1:9){
+    a[[i]]=matrix(n[,i],3,3)
+  }
 
+  return(a)
+}

@@ -6,6 +6,7 @@ source("sbot.r")
 source("bot.r")
 
 conf=rep(0,82)
+conf1=rep(0,9)
 strat=1:81
 turn=1
 rcd=NULL
@@ -24,20 +25,20 @@ stat.lm()
 ###############
 
 
-learn_matrix=train(n=100, players=c("s","s"))
+learn_matrix=train(n=50, players=c("s","s"))
 
-learn_matrix=train(n=100,players=c("m","s"))
+learn_matrix=train(n=50,players=c("m","s"))
 
-learn_matrix=train(n=100,players=c("s","m"))
+learn_matrix=train(n=50,players=c("s","m"))
 
-learn_matrix=train(n=100,players=c("m","m"))
+learn_matrix=train(n=50,players=c("m","m"))
 
 stat.lm()
 
 
 ##  after match with human learn with higher weight:
 ##  learn_matrix=learn(wt=2)
-##  TODO: allow varying weight  
+
 
 write.lm()
 

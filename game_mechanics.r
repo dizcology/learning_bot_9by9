@@ -134,3 +134,8 @@ ssample = function(v){
   return(m)
 
 }
+
+taken = function(v){
+  return(sum(abs(v)))
+
+}

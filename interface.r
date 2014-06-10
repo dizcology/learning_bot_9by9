@@ -27,7 +27,7 @@ ox = function(v){
 
 board = function(){
     
-  b=getgames()
+  b=getgames(conf)
   a=rep(list(NA),9)
   for (i in 1:9){
     a[[i]]=matrix(ox(b[[i]]),3,3)

@@ -119,19 +119,12 @@ sfindmove = function(cnf){
     m=which(cnf==0)
   } else if (length(find_check(cnf))>0) {
     ck=find_check(cnf)
-    if (length(ck)==1){
-      m=ck
-    } else {
-      m=sample(ck,1)
-    }
-  
+    m=ssample(ck)
+    
   } else if (length(find_chance(cnf))>0) {
     ch=find_chance(cnf)
-    if (length(ch)==1){
-      m=ch 
-    } else {
-      m=sample(ch,1)
-    }
+    m=ssample(ch)
+    
   } else{
     m=sample(which(cnf==0),1)
   }
@@ -148,9 +141,9 @@ sbotmove = function(show=TRUE){
   
     g=sfindmove(conf1)  
     
-    if (sum(abs(getgames()[[g]]))==9){
+    if (sum(abs(getgames(conf)[[g]]))==9){
       
-      games=getgames()
+      games=getgames(conf)
       
       for (i in 1:9){
         v[i]=sum(abs(games[[i]]))
@@ -158,34 +151,25 @@ sbotmove = function(show=TRUE){
       
       vv=which(v<9)
       
-      if (length(vv)==1){
-        g=vv
-      } else {
-        g=sample(vv,1)
-      }
+      g=ssample(vv)
         
     }
     
   } else if (conf[82]==0 && sum(abs(conf1))==9) {
-    games=getgames()
+    games=getgames(conf)
       
     for (i in 1:9){
       v[i]=sum(abs(games[[i]]))
     }
     
     vv=which(v<9)
-    
-    if (length(vv)==1){
-      g=vv
-    } else {
-      g=sample(vv,1)
-    }
+    g=ssample(vv)
 
   } else {
     g=conf[82]
   }
   
-  game=getgames()[[g]]
+  game=getgames(conf)[[g]]
   
   mv=sfindmove(game)
   

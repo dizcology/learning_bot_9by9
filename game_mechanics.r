@@ -20,9 +20,9 @@ play = function(m,show=TRUE){
   conf[m] <<- conf[m]+turn
   
   conf[82] <<- ifelse(m%%9==0,9,m%%9)
-  conf[82] <<- ifelse(sum(abs(getgames()[[conf[82]]]))==9,0,conf[82])
+  conf[82] <<- ifelse(sum(abs(getgames(conf)[[conf[82]]]))==9,0,conf[82])
 
-  a=getgames()
+  a=getgames(conf)
   for (i in 1:9){
     conf1[i] <<- judge(a[[i]])$winner
   }
@@ -73,14 +73,13 @@ reset = function(){
 
 generate = function(show=TRUE, show_each=FALSE, players=c("s","s")){ #TODO
   reset()
-  #records=NULL
   winner=0
   fnshed=FALSE
   
   v=list()
   for (i in 1:length(players)){
     if (players[i]=="m"){
-      v[[i]]=sbotmove #for now only sbot moves
+      v[[i]]=botmove 
     } else {
       v[[i]]=sbotmove
     }
@@ -91,7 +90,6 @@ generate = function(show=TRUE, show_each=FALSE, players=c("s","s")){ #TODO
     
     m=v[[j]](show=FALSE)
     
-    #records=rbind(records,list(conf=conf,move=m))
     play(m, show=show_each)
     jdg=judge(conf1)
     fnshed=jdg$finished
@@ -116,12 +114,23 @@ random.conf = function(){
   return(c(cnf,g))
 }
 
-getgames = function(){
-  n=matrix(conf[1:81],9,9)
+getgames = function(cnf){
+  n=matrix(cnf[1:81],9,9)
   a=rep(list(NA),9)
   for (i in 1:9){
     a[[i]]=matrix(n[,i],3,3)
   }
 
   return(a)
+}
+
+ssample = function(v){
+  m=NA
+  if (length(v)==1){
+    m=v
+  } else {
+    m=sample(v,1)
+  }
+  return(m)
+
 }

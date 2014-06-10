@@ -1,9 +1,8 @@
 
 
-train = function(n=50,mat=learn_matrix, players=c("s","s"),cut=200){
+train = function(n=50,lmat=learn_matrix, players=c("s","s"),cut=200){
   reset()
   count=0 #to avoid unending loop!
-  lmat=mat
   win_count=rep(0,3)
   names(win_count)=c(paste0(players,1:2),"tie")
   
@@ -26,7 +25,7 @@ train = function(n=50,mat=learn_matrix, players=c("s","s"),cut=200){
       }
     }
     win_count[(3-winner)/2]=win_count[(3-winner)/2]+1
-    lmat=learn(game=game, mat=lmat)
+    lmat=learn(game=game, lmat=lmat)
   }
   
   print(win_count)
@@ -34,10 +33,9 @@ train = function(n=50,mat=learn_matrix, players=c("s","s"),cut=200){
   return(lmat)
 }
 
-learn = function(game=list(records=rcd,winner=judge(conf1)$winner), mat=learn_matrix, wt=1){
-  lmat=mat
-  temp=NULL
-  
+learn = function(game=list(records=rcd,winner=judge(conf1)$winner), lmat=learn_matrix, wt=1){
+
+  temp=NULL  
   records=game$records
   winner=game$winner
   
@@ -45,10 +43,9 @@ learn = function(game=list(records=rcd,winner=judge(conf1)$winner), mat=learn_ma
       
     match=0  
     for (t in 1:dim(lmat)[1]){
-      if (all(records[k,]$conf==lmat[t,]$conf)){
-        #m=as.character(records[k,]$move)
+      if (all(records[k,]$conf==lmat[t,1:82])){
         m=hstrat[records[k,]$move]
-        lmat[[t,m]] <- lmat[[t,m]]+wt*((-1)^(k+1))*winner
+        lmat[t,m] <- lmat[t,m]+wt*((-1)^(k+1))*winner
         match=1
         break
       } 
@@ -56,12 +53,12 @@ learn = function(game=list(records=rcd,winner=judge(conf1)$winner), mat=learn_ma
     }
     
     if (match==0){
-      temp <- rbind(temp,matrix(c(list(conf=records[k,]$conf),rep(list(0),81)),1,82))
-      colnames(temp)=c("conf",hstrat)
-      #m=as.character(records[k,]$move)
+      
+      temp <- rbind(temp,c(records[k,]$conf,rep(0,81)))
+      colnames(temp)=c(1:82,hstrat)
       m=hstrat[records[k,]$move]
       s=dim(temp)[1]
-      temp[[s,m]] <- temp[[s,m]]+wt*((-1)^(k+1))*winner      
+      temp[s,m] <- temp[s,m]+wt*((-1)^(k+1))*winner      
     }
     
   }
@@ -74,74 +71,90 @@ learn = function(game=list(records=rcd,winner=judge(conf1)$winner), mat=learn_ma
 botmove = function(show=TRUE){  #TODO
   m=NA
   
+  g=conf[82]
+  
+  if (g!=0){
+    w=intersect(which(conf[1:81]==0),1:9+(g-1)*9)
+  } else {
+    w=which(conf[1:81]==0)
+  }
+  
+  
   for (t in 1:dim(learn_matrix)[1]){
-    if (all(conf==learn_matrix[t,]$conf)){
-      v=unlist(learn_matrix[t,2:10])[which(conf==0)]
-      mm=as.numeric(names(v))
-      if (length(which(v==max(v)))==0) {
-        break
-      } else if (length(which(v==max(v)))==1){
-        m=mm[which(v==max(v))]
-      } else{
-        m=mm[sample(which(v==max(v)),1)]
-      }
+    if (all(conf==learn_matrix[t,1:82])){
+
+      v=learn_matrix[t,83:163]
+      mx=max(v[w])
+      ww=intersect(which(v==mx),w)
+      
+      m=ssample(ww)
+      
+      #if (length(which(v0==max(v)))==0) {
+      #  break
+      #} else if (length(which(v0==max(v)))==1){
+      #  m=which(v0==max(v))
+      #} else{
+      #  m=sample(which(v==max(v)),1)
+      #}
       break
     } 
   }
   
   if(is.na(m)){
-    if (length(which(conf==0))==1){
-      m=which(conf==0)
-    } else{
-
-      m=sample(which(conf==0),1)
-    }
+    
+    m=ssample(w)
+    
   }
+  
   if (show==TRUE){
     print(search.lm())
   }
   return(m)
 }
 
-search.lm = function(c=conf){
+search.lm = function(c=conf){ 
   r=NA
   for (t in 1:dim(learn_matrix)[1]){
-    if (all(conf==learn_matrix[t,]$conf)){
-      r=matrix(unlist(learn_matrix[t,2:10]),3,3)
-      rownames(r)=1:3
-      colnames(r)=1:3
+    if (all(conf==learn_matrix[t,1:82])){
+      b=getgames(learn_matrix[t,83:163])
+      a=rep(list(NA),9)
+      for (i in 1:9){
+        a[[i]]=matrix(b[[i]],3,3)
+      }
+      r=cbind(rbind(a[[1]],"-",a[[2]],"-",a[[3]]),"|",rbind(a[[4]],"-",a[[5]],"-",a[[6]]),"|",rbind(a[[7]],"-",a[[8]],"-",a[[9]]))
+      
+      #r=matrix(unlist(learn_matrix[t,2:82]),9,9)
+      
+      rownames(r)=c(1:3,"",1:3,"",1:3)
+      colnames(r)=c(1:3,"",1:3,"",1:3)
       break
     } 
   }
   
-  return(r)
+  res=ifelse(is.na(r),NA,as.table(r))
+  return(res)
 }
 
 write.lm = function(lmat=learn_matrix,file="learn_matrix.dat"){
-  write.table(t(apply(lmat,1,unlist)),file=file,row.names=F,col.names=F)
+  write.table(lmat,file=file,row.names=F,col.names=F)
 }
 
-read.lm = function(file="learn_matrix.dat"){
-  lmat=NULL
-  tmp=read.table(file=file)
-  colnames(tmp)=c(1:82,1:81)
-  for (i in 1:dim(tmp)[1]){
-    rw=c(list(conf=as.numeric(tmp[i,1:82])),as.list(tmp[i,83:163]))
-    lmat=rbind(lmat,rw)
-  }
-  
-  colnames(lmat)=c("conf",hstrat)
+
+read.lm = function(file="learn_matrix.dat"){  
+  lmat=as.matrix(read.table(file=file))
+  colnames(lmat)=c(1:82,hstrat)
+
   rownames(lmat)=NULL
   return(lmat)
 }
 
+
+
 stat.lm = function(lmat=learn_matrix){
   print (paste0("Configurations observed: ",dim(lmat)[1]))
-  mm=unlist(as.matrix(lmat[1:dim(lmat)[1],2:10]))
+  mm=lmat[1:dim(lmat)[1],83:163]
   idx=sum(abs(mm))
   
   print (paste0("Learn index: ",idx))
-  #rng=range(lmat[2:dim(lmat)[1],2:10])
-  #print (paste0("Range: ",rng[1],"~",rng[2]))
   
 }
